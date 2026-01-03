@@ -749,5 +749,30 @@
     $("studentName").addEventListener("keydown", (e) => { if (e.key === "Enter") startQuiz(); });
     $("teacherPass").addEventListener("keydown", (e) => { if (e.key === "Enter") teacherLogin(); });
   </script>
+<!-- 🔥 Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"></script>
+
+<script>
+  // 🔥 Firebase config – A TE PROJEKTED
+  const firebaseConfig = {
+    apiKey: "AIzaSyClYzdDy4BCB-b2GMDO2lA1fMTbw8SkkY4",
+    authDomain: "forras-56.firebaseapp.com",
+    projectId: "forras-56",
+    storageBucket: "forras-56.firebasestorage.app",
+    messagingSenderId: "259665371030",
+    appId: "1:259665371030:web:cbdef457d37b4dde3a87b7"
+  };
+
+  // 🔥 Firebase inicializálás
+  firebase.initializeApp(firebaseConfig);
+
+  // 🔥 Firestore adatbázis
+  const db = firebase.firestore();
+
+  // 🔥 Collection neve (56-os külön!)
+  const COLLECTION = "forras56_submissions";
+</script>
+
 </body>
 </html>
