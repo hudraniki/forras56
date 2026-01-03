@@ -3,209 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Forrásmegjelölés – 5–6. évfolyam – gyakorló</title>
-
+  <title>Forrásmegjelölés – tesztek</title>
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #f6f7fb;
-      color: #111;
-    }
-    .wrap {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .card {
-      background: #fff;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.06);
-      margin-bottom: 16px;
-    }
-    h1 { font-size: 22px; margin: 0 0 10px; }
-    h2 { font-size: 18px; margin: 0 0 10px; }
-    .muted { color: #555; font-size: 14px; }
-    .q {
-      border: 1px solid #eceef6;
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 12px;
-    }
-    .q-title { font-weight: 700; margin-bottom: 8px; }
-    label {
-      display: block;
-      padding: 6px 8px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    label:hover { background: #f0f4ff; }
-    textarea {
-      width: 100%;
-      min-height: 60px;
-      margin-top: 6px;
-      padding: 8px;
-      font-family: inherit;
-    }
-    button {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      background: #1f6feb;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-    }
-    button:disabled { opacity: .6; }
-    .hidden { display: none; }
-    .ok { color: #0a7a2f; font-weight: 700; }
-    .err { color: #b00020; font-weight: 700; }
+    body{font-family:system-ui,Arial; background:#f6f7fb; margin:0;}
+    .wrap{max-width:720px; margin:0 auto; padding:24px;}
+    .card{background:#fff; border-radius:14px; padding:16px; box-shadow:0 6px 18px rgba(0,0,0,.06);}
+    a{display:block; padding:12px 14px; border:1px solid #eceef6; border-radius:12px; text-decoration:none; color:#111; margin:10px 0; background:#fafbff;}
+    a:hover{background:#eef3ff;}
+    h1{margin:0 0 8px; font-size:20px;}
+    .muted{color:#555; font-size:13px;}
   </style>
 </head>
-
 <body>
-<div class="wrap">
+  <div class="wrap">
+    <div class="card">
+      <h1>Forrásmegjelölés – gyakorlók</h1>
+      <div class="muted">Válaszd ki az évfolyamot:</div>
 
-  <div class="card">
-    <h1>Forrásmegjelölés – 5–6. évfolyam</h1>
-    <div class="muted">
-      Pontos hivatkozás, idézés, képhasználat.  
-      A válaszok mentésre kerülnek.
+      <a href="./forras_4.html">4. osztály – gyakorló</a>
+      <a href="./forras_56.html">5–6. évfolyam – gyakorló</a>
     </div>
   </div>
-
-  <!-- NÉV -->
-  <div class="card" id="startCard">
-    <h2>Add meg a neved</h2>
-    <input id="studentName" type="text" placeholder="Pl. Anna 6.b" />
-    <br><br>
-    <button onclick="startQuiz()">Kezdés</button>
-    <div id="nameError" class="err hidden">Írj be nevet!</div>
-  </div>
-
-  <!-- TESZT -->
-  <div class="card hidden" id="quizCard">
-    <h2>Kérdések</h2>
-    <div id="questions"></div>
-    <br>
-    <button onclick="submitQuiz()">Beküldés</button>
-    <div id="submitError" class="err hidden"></div>
-  </div>
-
-  <!-- EREDMÉNY -->
-  <div class="card hidden" id="resultCard">
-    <h2>Eredmény</h2>
-    <div id="resultText"></div>
-  </div>
-
-</div>
-
-<!-- 🔥 FIREBASE CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"></script>
-
-<script>
-  // 🔥 FIREBASE CONFIG – A TE ADATAIDDAL
-  const firebaseConfig = {
-    apiKey: "AIzaSyAkndvuhNdwtAakMDuklisBCGhD-QsaQvU",
-    authDomain: "forras56-da462.firebaseapp.com",
-    projectId: "forras56-da462",
-    storageBucket: "forras56-da462.firebasestorage.app",
-    messagingSenderId: "47971329968",
-    appId: "1:47971329968:web:421d725a9e1a6a56021875"
-  };
-
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const COLLECTION = "forras56_submissions";
-
-  const questionsData = [
-    {
-      id: "q1",
-      q: "Melyik forrásmegjelölés a legpontosabb?",
-      options: [
-        "Forrás: internet",
-        "Wikipedia",
-        "Szerző – cím – év – link",
-        "Ezt sok helyen olvastam"
-      ],
-      correct: 2
-    },
-    {
-      id: "q2",
-      q: "Mikor kell idézőjelet használni?",
-      options: [
-        "Soha",
-        "Ha szó szerint veszek át szöveget",
-        "Ha képet használok",
-        "Ha rövid a szöveg"
-      ],
-      correct: 1
-    }
-  ];
-
-  let answers = {};
-  let studentName = "";
-
-  function startQuiz() {
-    studentName = document.getElementById("studentName").value.trim();
-    if (!studentName) {
-      document.getElementById("nameError").classList.remove("hidden");
-      return;
-    }
-    document.getElementById("startCard").classList.add("hidden");
-    document.getElementById("quizCard").classList.remove("hidden");
-    renderQuestions();
-  }
-
-  function renderQuestions() {
-    const holder = document.getElementById("questions");
-    holder.innerHTML = "";
-    questionsData.forEach((q, i) => {
-      const div = document.createElement("div");
-      div.className = "q";
-      div.innerHTML = `<div class="q-title">${i+1}. ${q.q}</div>`;
-      q.options.forEach((opt, oi) => {
-        div.innerHTML += `
-          <label>
-            <input type="radio" name="${q.id}" value="${oi}">
-            ${opt}
-          </label>`;
-      });
-      holder.appendChild(div);
-    });
-  }
-
-  function submitQuiz() {
-    let score = 0;
-    questionsData.forEach(q => {
-      const checked = document.querySelector(`input[name="${q.id}"]:checked`);
-      if (!checked) {
-        document.getElementById("submitError").textContent = "Minden kérdésre válaszolj!";
-        document.getElementById("submitError").classList.remove("hidden");
-        return;
-      }
-      if (Number(checked.value) === q.correct) score++;
-      answers[q.id] = checked.value;
-    });
-
-    db.collection(COLLECTION).add({
-      name: studentName,
-      answers,
-      score,
-      maxScore: questionsData.length,
-      createdAt: new Date().toISOString()
-    });
-
-    document.getElementById("quizCard").classList.add("hidden");
-    document.getElementById("resultCard").classList.remove("hidden");
-    document.getElementById("resultText").innerHTML =
-      `Köszönöm, <b>${studentName}</b>!<br>
-       Pontszám: <b>${score} / ${questionsData.length}</b>`;
-  }
-</script>
-
 </body>
 </html>
