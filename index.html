@@ -3,209 +3,751 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Forrásmegjelölés – 5–6. évfolyam – gyakorló</title>
-
+  <title>Forrásmegjelölés – 5–6. évfolyam – gyakorló teszt</title>
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: #f6f7fb;
-      color: #111;
-    }
-    .wrap {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .card {
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.35; }
+    body { margin: 0; background: #f6f7fb; color: #111; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+    .card { background: white; border-radius: 14px; padding: 16px; box-shadow: 0 6px 18px rgba(0,0,0,.06); margin-bottom: 12px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    h2 { font-size: 16px; margin: 0 0 8px; }
+    .muted { color: #555; font-size: 13px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    input[type="text"], input[type="password"], textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #d6d8e1; border-radius: 10px; font-size: 14px; box-sizing: border-box;
       background: #fff;
-      border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 6px 18px rgba(0,0,0,.06);
-      margin-bottom: 16px;
     }
-    h1 { font-size: 22px; margin: 0 0 10px; }
-    h2 { font-size: 18px; margin: 0 0 10px; }
-    .muted { color: #555; font-size: 14px; }
-    .q {
-      border: 1px solid #eceef6;
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 12px;
-    }
-    .q-title { font-weight: 700; margin-bottom: 8px; }
-    label {
-      display: block;
-      padding: 6px 8px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    label:hover { background: #f0f4ff; }
-    textarea {
-      width: 100%;
-      min-height: 60px;
-      margin-top: 6px;
-      padding: 8px;
-      font-family: inherit;
-    }
+    textarea { min-height: 62px; resize: vertical; }
     button {
-      padding: 10px 14px;
-      border-radius: 10px;
-      border: none;
-      background: #1f6feb;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
+      border: 0; border-radius: 10px; padding: 10px 12px; font-size: 14px; cursor: pointer;
+      background: #1f6feb; color: #fff;
     }
-    button:disabled { opacity: .6; }
-    .hidden { display: none; }
+    button.secondary { background: #2f3542; }
+    button.ghost { background: #e9ecf6; color: #111; }
+    button.danger { background: #d7263d; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .q { padding: 12px; border: 1px solid #eceef6; border-radius: 12px; margin-top: 10px; }
+    .q-title { font-weight: 700; margin: 0 0 8px; }
+    .opt { display: block; padding: 8px 10px; border: 1px solid #eceef6; border-radius: 10px; margin: 6px 0; background: #fafbff; }
+    .opt input { margin-right: 8px; }
+    .badge { display:inline-block; padding: 4px 8px; border-radius: 999px; background:#eef3ff; font-size: 12px; }
     .ok { color: #0a7a2f; font-weight: 700; }
     .err { color: #b00020; font-weight: 700; }
+    .hr { height: 1px; background: #eceef6; margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid #eceef6; padding: 8px; text-align: left; font-size: 13px; vertical-align: top; }
+    th { background: #fafbff; position: sticky; top: 0; z-index: 1; }
+    .small { font-size: 12px; }
+    .hidden { display:none !important; }
+    .right { margin-left: auto; }
   </style>
 </head>
-
 <body>
-<div class="wrap">
+  <div class="wrap">
+    <div class="card">
+      <div class="row">
+        <div>
+          <h1>Forrásmegjelölés – 5–6. évfolyam – gyakorló teszt</h1>
+          <div class="muted">Név → kitöltés → pontszám → mentés Firestore-ba → tanári nézet (indoklások + CSV).</div>
+        </div>
+        <div class="right row">
+          <button id="btnTeacher" class="secondary" type="button">Tanári nézet</button>
+          <button id="btnResetLocal" class="ghost" type="button" title="Ha elrontották a nevet vagy újra akarják kezdeni ugyanazon a gépen.">Helyi újrakezdés</button>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div id="status" class="muted">Állapot: betöltés…</div>
+    </div>
 
-  <div class="card">
-    <h1>Forrásmegjelölés – 5–6. évfolyam</h1>
-    <div class="muted">
-      Pontos hivatkozás, idézés, képhasználat.  
-      A válaszok mentésre kerülnek.
+    <div id="studentStart" class="card">
+      <h2>1) Add meg a neved</h2>
+      <div class="muted">Pl. „Bence 6.a”.</div>
+      <div class="row" style="margin-top:10px;">
+        <div style="flex: 1 1 280px;">
+          <input id="studentName" type="text" placeholder="Név" autocomplete="off" />
+        </div>
+        <div>
+          <button id="btnStart" type="button">Kezdés</button>
+        </div>
+      </div>
+      <div id="nameError" class="err small hidden" style="margin-top:8px;">Kérlek, írj be nevet (legalább 2 karakter).</div>
+    </div>
+
+    <div id="quiz" class="card hidden">
+      <div class="row">
+        <div class="badge" id="progressBadge">0 / 0</div>
+        <div class="muted" id="quizHint">Olvasd végig mind a 4 választ, több kérdésnél „csapda” van a pontosság miatt.</div>
+      </div>
+
+      <div id="questions"></div>
+
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnSubmit" type="button">Beküldés és eredmény</button>
+        <div class="muted" id="submitInfo">Beküldéskor a válaszok mentésre kerülnek.</div>
+      </div>
+      <div id="submitError" class="err small hidden" style="margin-top:8px;"></div>
+    </div>
+
+    <div id="result" class="card hidden">
+      <h2>Eredmény</h2>
+      <div id="resultSummary" class="muted"></div>
+      <div class="hr"></div>
+      <div id="resultFeedback"></div>
+      <div class="hr"></div>
+      <div class="muted small">
+        Megjegyzés: az indoklások szövegét a tanár a tanári nézetben látja és ellenőrizheti.
+      </div>
+    </div>
+
+    <div id="teacher" class="card hidden">
+      <h2>Tanári nézet</h2>
+      <div class="muted">Jelszóval nyitható (UI-védelem). Itt látod a beküldéseket és az indoklásokat.</div>
+      <div class="row" style="margin-top:10px;">
+        <div style="flex: 1 1 240px;">
+          <input id="teacherPass" type="password" placeholder="Tanári jelszó" autocomplete="off" />
+        </div>
+        <div class="row">
+          <button id="btnTeacherLogin" type="button">Belépés</button>
+          <button id="btnTeacherClose" class="ghost" type="button">Bezár</button>
+        </div>
+      </div>
+      <div id="teacherAuthError" class="err small hidden" style="margin-top:8px;">Hibás jelszó.</div>
+
+      <div id="teacherPanel" class="hidden" style="margin-top:14px;">
+        <div class="row">
+          <div class="muted"><span class="badge" id="countBadge">0</span> beküldés</div>
+          <div class="right row">
+            <button id="btnRefresh" class="ghost" type="button">Frissítés</button>
+            <button id="btnExport" class="secondary" type="button">CSV export</button>
+            <button id="btnDeleteAll" class="danger" type="button">Összes törlése</button>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <div style="max-height: 520px; overflow:auto; border:1px solid #eceef6; border-radius: 12px;">
+          <table id="submissionsTable">
+            <thead>
+              <tr>
+                <th>Idő</th>
+                <th>Név</th>
+                <th>Pont</th>
+                <th>MCQ</th>
+                <th>Igen/Nem + indoklás</th>
+                <th>Művelet</th>
+              </tr>
+            </thead>
+            <tbody id="submissionsBody"></tbody>
+          </table>
+        </div>
+        <div class="muted small" style="margin-top:8px;">Tipp: alapból az utolsó 200 beküldést tölti be.</div>
+      </div>
     </div>
   </div>
 
-  <!-- NÉV -->
-  <div class="card" id="startCard">
-    <h2>Add meg a neved</h2>
-    <input id="studentName" type="text" placeholder="Pl. Anna 6.b" />
-    <br><br>
-    <button onclick="startQuiz()">Kezdés</button>
-    <div id="nameError" class="err hidden">Írj be nevet!</div>
-  </div>
+  <script type="module">
+    /*********************************************************************
+     * 0) BEÁLLÍTÁSOK
+     *********************************************************************/
+    const TEACHER_PASSWORD = "Nixi99Nixi99";
 
-  <!-- TESZT -->
-  <div class="card hidden" id="quizCard">
-    <h2>Kérdések</h2>
-    <div id="questions"></div>
-    <br>
-    <button onclick="submitQuiz()">Beküldés</button>
-    <div id="submitError" class="err hidden"></div>
-  </div>
+    // ✅ UGYANAZ a Firebase projekt, mint a 4.-esnél -> ide a TE kulcsod/appId-d:
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2ZN37vvWua8SY4h5dj0mZapcRIKeAAGo",
+      authDomain: "forras-gyakorlo.firebaseapp.com",
+      projectId: "forras-gyakorlo",
+      storageBucket: "forras-gyakorlo.firebasestorage.app",
+      messagingSenderId: "71098032558",
+      appId: "1:71098032558:web:44e7cef8c5c9900ac2a83f"
+    };
 
-  <!-- EREDMÉNY -->
-  <div class="card hidden" id="resultCard">
-    <h2>Eredmény</h2>
-    <div id="resultText"></div>
-  </div>
+    // ✅ ÚJ collection név az 5–6-osoknak (ettől lesz külön adatgyűjtés)
+    const COLLECTION = "forras_56_submissions";
 
-</div>
+    /*********************************************************************
+     * 1) FIREBASE IMPORTS
+     *********************************************************************/
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp, query, orderBy, limit,
+      getDocs, deleteDoc, doc
+    } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-<!-- 🔥 FIREBASE CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"></script>
+    /*********************************************************************
+     * 2) DOM helpers
+     *********************************************************************/
+    const $ = (id) => document.getElementById(id);
+    const show = (el) => el.classList.remove("hidden");
+    const hide = (el) => el.classList.add("hidden");
+    const setText = (el, t) => (el.textContent = t);
 
-<script>
-  // 🔥 FIREBASE CONFIG – A TE ADATAIDDAL
-  const firebaseConfig = {
-    apiKey: "AIzaSyAkndvuhNdwtAakMDuklisBCGhD-QsaQvU",
-    authDomain: "forras56-da462.firebaseapp.com",
-    projectId: "forras56-da462",
-    storageBucket: "forras56-da462.firebasestorage.app",
-    messagingSenderId: "47971329968",
-    appId: "1:47971329968:web:421d725a9e1a6a56021875"
-  };
-
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const COLLECTION = "forras56_submissions";
-
-  const questionsData = [
-    {
-      id: "q1",
-      q: "Melyik forrásmegjelölés a legpontosabb?",
-      options: [
-        "Forrás: internet",
-        "Wikipedia",
-        "Szerző – cím – év – link",
-        "Ezt sok helyen olvastam"
-      ],
-      correct: 2
-    },
-    {
-      id: "q2",
-      q: "Mikor kell idézőjelet használni?",
-      options: [
-        "Soha",
-        "Ha szó szerint veszek át szöveget",
-        "Ha képet használok",
-        "Ha rövid a szöveg"
-      ],
-      correct: 1
-    }
-  ];
-
-  let answers = {};
-  let studentName = "";
-
-  function startQuiz() {
-    studentName = document.getElementById("studentName").value.trim();
-    if (!studentName) {
-      document.getElementById("nameError").classList.remove("hidden");
-      return;
-    }
-    document.getElementById("startCard").classList.add("hidden");
-    document.getElementById("quizCard").classList.remove("hidden");
-    renderQuestions();
-  }
-
-  function renderQuestions() {
-    const holder = document.getElementById("questions");
-    holder.innerHTML = "";
-    questionsData.forEach((q, i) => {
-      const div = document.createElement("div");
-      div.className = "q";
-      div.innerHTML = `<div class="q-title">${i+1}. ${q.q}</div>`;
-      q.options.forEach((opt, oi) => {
-        div.innerHTML += `
-          <label>
-            <input type="radio" name="${q.id}" value="${oi}">
-            ${opt}
-          </label>`;
-      });
-      holder.appendChild(div);
-    });
-  }
-
-  function submitQuiz() {
-    let score = 0;
-    questionsData.forEach(q => {
-      const checked = document.querySelector(`input[name="${q.id}"]:checked`);
-      if (!checked) {
-        document.getElementById("submitError").textContent = "Minden kérdésre válaszolj!";
-        document.getElementById("submitError").classList.remove("hidden");
-        return;
+    /*********************************************************************
+     * 3) KÉRDÉSEK (5–6. évfolyam)
+     *********************************************************************/
+    const mcq = [
+      { id:"mcq1", q:"Melyik állítás a legpontosabb a forrásmegjelölés céljáról?",
+        options:[
+          "Azért kell, hogy hosszabb legyen a dolgozat.",
+          "Azért kell, hogy a tanár ne tudjon belekötni.",
+          "Azért kell, hogy ellenőrizhető legyen, honnan származik az információ, és korrekt legyen a munka.",
+          "Azért kell, mert minden weboldal kötelezően kéri."
+        ],
+        correctIndex:2,
+        explain:"A forrásmegjelölés átláthatóvá és ellenőrizhetővé teszi, honnan van az info."
+      },
+      { id:"mcq2", q:"Melyik NEM számít önmagában elég pontos webes forrásnak?",
+        options:[
+          "A konkrét oldal címe + link + (ha lehet) dátum",
+          "„Google”",
+          "A weboldal neve + konkrét aloldal linkje",
+          "A cikk címe + link"
+        ],
+        correctIndex:1,
+        explain:"A Google kereső, nem konkrét forrás."
+      },
+      { id:"mcq3", q:"Egy Wikipédiás információt használtál. Mi a legkorrektebb megoldás?",
+        options:[
+          "Nem kell jelölni, mert Wikipedia = közös tudás.",
+          "Elég annyi: „Forrás: Wikipédia”.",
+          "A pontos Wikipédia-oldal címe + link (és ha lehet: megtekintés dátuma).",
+          "A Wikipédia logóját bemásolod a dolgozatba."
+        ],
+        correctIndex:2,
+        explain:"Wikipédiánál is a konkrét oldal a forrás."
+      },
+      { id:"mcq4", q:"Mitől lesz plágiumgyanús egy beadandó?",
+        options:[
+          "Ha túl rövid.",
+          "Ha sok benne a kép.",
+          "Ha idézőjel nélkül, forrás nélkül vesz át szó szerinti részeket.",
+          "Ha helyesírási hibák vannak benne."
+        ],
+        correctIndex:2,
+        explain:"A szó szerinti átvétel jelölés nélkül plágiumgyanús."
+      },
+      { id:"mcq5", q:"Melyik a jó elv, ha ugyanarról több forrásban is olvastál?",
+        options:[
+          "Azt jelölöm, amit tényleg használtam, és lehetőleg a megbízhatóbbat.",
+          "Nem jelölök semmit, mert több helyen is megtalálható.",
+          "Bármelyiket jelölöm, akár olyat is, amit nem olvastam.",
+          "Csak a legrövidebbet jelölöm, mert az a legegyszerűbb."
+        ],
+        correctIndex:0,
+        explain:"A ténylegesen használt forrást kell jelölni."
+      },
+      { id:"mcq6", q:"Melyik mondat írja le legjobban a „parafrázist”?",
+        options:[
+          "Kimásolom a szöveget, de kicserélek 1–2 szót.",
+          "Elolvasom, megértem, és a saját szavaimmal, új mondatszerkezettel fogalmazom meg.",
+          "Csak a mondat elejét írom át, a többi marad.",
+          "Lemondom a forrásmegjelölést, mert saját szavakkal írtam."
+        ],
+        correctIndex:1,
+        explain:"Saját megfogalmazás, de a forrást ettől még jelölheted."
+      },
+      { id:"mcq7", q:"Képet használsz egy weboldalról. Mi a minimum korrekt jelölés?",
+        options:[
+          "Semmi, mert a kép „csak illusztráció”.",
+          "Az oldal neve (vagy kép címe) + a link, ahonnan a képet vetted.",
+          "A fájlnév (pl. IMG_1234.jpg).",
+          "Annyi: „forrás: internet”."
+        ],
+        correctIndex:1,
+        explain:"Képnél is kell a konkrét lelőhely."
+      },
+      { id:"mcq8", q:"YouTube-videóból vettél információt. Mi a legjobb forrásmegjelölés?",
+        options:[
+          "„Forrás: YouTube”",
+          "Csak a csatorna neve",
+          "A videó címe + csatorna neve + link (és ha lehet: megtekintés dátuma)",
+          "A videó alatti komment"
+        ],
+        correctIndex:2,
+        explain:"Videónál is a konkrét videó a forrás."
+      },
+      { id:"mcq9", q:"Melyik állítás igaz az idézésről?",
+        options:[
+          "Idézni csak könyvből lehet.",
+          "Ha idézőjelbe teszem és megadom a forrást, akkor korrekt idézetet készítek.",
+          "Idézőjel nélkül is idézet, ha odaírom a szerző nevét.",
+          "Idézetnél nem kell forrás, mert úgyis látszik, hogy másé."
+        ],
+        correctIndex:1,
+        explain:"Idézőjel + forrás = korrekt idézés."
+      },
+      { id:"mcq10", q:"Miért problémás az, hogy „forrás: internet”?",
+        options:[
+          "Mert az internet nem létezik.",
+          "Mert túl hosszú.",
+          "Mert nem derül ki belőle, pontosan melyik oldal/cikk volt a forrás.",
+          "Mert a tanár nem szereti ezt a kifejezést."
+        ],
+        correctIndex:2,
+        explain:"Nem visszakereshető, nem ellenőrizhető."
+      },
+      { id:"mcq11", q:"Mi a legkorrektebb, ha AI-t (pl. ChatGPT-t) használtál ötletelésre vagy javításra?",
+        options:[
+          "Eltitkolom, mert AI-t használni tilos.",
+          "Nem jelölöm, mert nem „forrás”, csak segített.",
+          "A dolgozat végén röviden jelzem, mire használtam (pl. ötletelés, nyelvi javítás).",
+          "Csak a program nevét írom le, minden magyarázat nélkül."
+        ],
+        correctIndex:2,
+        explain:"Az átláthatóság a lényeg: mire használtad."
+      },
+      { id:"mcq12", q:"Melyik forrás tűnik általában megbízhatóbbnak iskolai munkához?",
+        options:[
+          "Egy névtelen fórumhozzászólás",
+          "Egy ismeretlen TikTok videó",
+          "Egy tankönyv / múzeum / egyetem / hivatalos intézmény oldala",
+          "Egy komment egy videó alatt"
+        ],
+        correctIndex:2,
+        explain:"Általában a szakmai/oktatási/hivatalos forrás megbízhatóbb."
       }
-      if (Number(checked.value) === q.correct) score++;
-      answers[q.id] = checked.value;
-    });
+    ];
 
-    db.collection(COLLECTION).add({
-      name: studentName,
-      answers,
-      score,
-      maxScore: questionsData.length,
-      createdAt: new Date().toISOString()
-    });
+    const yn = [
+      { id:"yn1", q:"Helyes-e: „Forrás: Wikipédia” (csak ennyi van odaírva).", correctYes:false, why:"Túl általános: a pontos oldal címe + link szükséges." },
+      { id:"yn2", q:"Helyes-e: Idézőjelbe teszek egy mondatot, és mellé írom a cikk címét + linket.", correctYes:true,  why:"Idézetnél fontos a jelölés, ez így korrekt." },
+      { id:"yn3", q:"Helyes-e: Parafrázist írok saját szavakkal, ezért nem írok forrást.", correctYes:false, why:"Saját megfogalmazás mellett is jelölhető/ajánlott a forrás." },
+      { id:"yn4", q:"Helyes-e: Képet használok, és a kép aláírásában megadom a forrás linkjét.", correctYes:true,  why:"Képnél is korrekt a lelőhely megadása." },
+      { id:"yn5", q:"Helyes-e: A barátom PPT-jéből átmásolok egy ábrát, és nem jelzem, mert ő is diák.", correctYes:false, why:"Más munkája is forrás; jelölés nélkül nem korrekt." },
+      { id:"yn6", q:"Helyes-e: A forráslistában szerepel a cikk címe, a weboldal neve, a link, és a megtekintés dátuma.", correctYes:true,  why:"Visszakereshető és pontos, ez jó gyakorlat." }
+    ];
 
-    document.getElementById("quizCard").classList.add("hidden");
-    document.getElementById("resultCard").classList.remove("hidden");
-    document.getElementById("resultText").innerHTML =
-      `Köszönöm, <b>${studentName}</b>!<br>
-       Pontszám: <b>${score} / ${questionsData.length}</b>`;
-  }
-</script>
+    const totalAutoPoints = mcq.length + yn.length;
 
+    /*********************************************************************
+     * 4) APP STATE
+     *********************************************************************/
+    let db = null;
+    let student = { name:"", answers:{}, justifications:{}, score:0, maxScore: totalAutoPoints };
+
+    const safeNowISO = () => new Date().toISOString();
+    const escapeHtml = (s) => String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+
+    /*********************************************************************
+     * 5) RENDER QUESTIONS
+     *********************************************************************/
+    function renderQuestions() {
+      const holder = $("questions");
+      holder.innerHTML = "";
+
+      const mcqHeader = document.createElement("div");
+      mcqHeader.className = "q";
+      mcqHeader.innerHTML = `<div class="q-title">A) Elméleti kérdések (4 válasz) – válassz egyet</div>
+                             <div class="muted small">Tipp: olvasd végig mind a 4 opciót.</div>`;
+      holder.appendChild(mcqHeader);
+
+      mcq.forEach((item, idx) => {
+        const div = document.createElement("div");
+        div.className = "q";
+        div.innerHTML = `<div class="q-title">${idx+1}. ${item.q}</div>`;
+        item.options.forEach((opt, oi) => {
+          const lab = document.createElement("label");
+          lab.className = "opt";
+          lab.innerHTML = `<input type="radio" name="${item.id}" value="${oi}"> ${opt}`;
+          div.appendChild(lab);
+        });
+        holder.appendChild(div);
+      });
+
+      const ynHeader = document.createElement("div");
+      ynHeader.className = "q";
+      ynHeader.innerHTML = `<div class="q-title">B) Igen / Nem + indoklás (1 mondat)</div>
+                            <div class="muted small">Válaszd ki, hogy helyes-e, és írd le röviden, miért.</div>`;
+      holder.appendChild(ynHeader);
+
+      yn.forEach((item, idx) => {
+        const div = document.createElement("div");
+        div.className = "q";
+        div.innerHTML = `<div class="q-title">${idx+1}. ${item.q}</div>
+          <label class="opt"><input type="radio" name="${item.id}" value="yes"> Igen</label>
+          <label class="opt"><input type="radio" name="${item.id}" value="no"> Nem</label>
+          <div class="muted small" style="margin-top:8px;">Indoklás (1 mondat):</div>
+          <textarea id="${item.id}_why" placeholder="Írj 1 mondatot (pl. mert...)."></textarea>`;
+        holder.appendChild(div);
+      });
+
+      setText($("progressBadge"), `Kérdések: ${mcq.length} + ${yn.length} = ${totalAutoPoints} pont (automatikus)`);
+    }
+
+    function collectAnswers() {
+      const answers = {};
+      const just = {};
+
+      mcq.forEach((item) => {
+        const checked = document.querySelector(`input[name="${item.id}"]:checked`);
+        answers[item.id] = checked ? Number(checked.value) : null;
+      });
+
+      yn.forEach((item) => {
+        const checked = document.querySelector(`input[name="${item.id}"]:checked`);
+        answers[item.id] = checked ? checked.value : null;
+        just[item.id] = ($(`${item.id}_why`).value || "").trim();
+      });
+
+      return { answers, justifications: just };
+    }
+
+    function validateBeforeSubmit(payload) {
+      for (const item of mcq) {
+        if (payload.answers[item.id] === null) return `Hiányzik válasz: "${item.q}"`;
+      }
+      for (const item of yn) {
+        if (payload.answers[item.id] === null) return `Hiányzik Igen/Nem válasz: "${item.q}"`;
+        const t = payload.justifications[item.id] || "";
+        if (t.length < 10 || !t.includes(" ")) return `Kérlek, írj 1 mondatos indoklást ennél: "${item.q}"`;
+      }
+      return null;
+    }
+
+    function computeScore(answers) {
+      let s = 0;
+      mcq.forEach((item) => { if (answers[item.id] === item.correctIndex) s += 1; });
+      yn.forEach((item) => {
+        const isYes = answers[item.id] === "yes";
+        const correct = (isYes === item.correctYes);
+        if (correct) s += 1;
+      });
+      return s;
+    }
+
+    function buildFeedback(payload) {
+      const out = document.createElement("div");
+
+      const header = document.createElement("div");
+      header.className = "card";
+      header.innerHTML = `<h2>Rövid visszajelzés</h2>
+        <div class="muted">A feleletválasztós hibáknál megmutatom a helyes választ és a rövid indoklást.</div>`;
+      out.appendChild(header);
+
+      const wrongs = [];
+      mcq.forEach((item, i) => {
+        const a = payload.answers[item.id];
+        if (a !== item.correctIndex) wrongs.push({ item, index:i, a });
+      });
+
+      const mcqBlock = document.createElement("div");
+      mcqBlock.className = "q";
+      mcqBlock.innerHTML = `<div class="q-title">Elméleti kérdések – ellenőrzés</div>`;
+      if (wrongs.length === 0) {
+        mcqBlock.innerHTML += `<div class="ok">Minden feleletválasztós kérdésed jó lett.</div>`;
+      } else {
+        wrongs.slice(0, 7).forEach(w => {
+          const correctText = w.item.options[w.item.correctIndex];
+          const yourText = (w.a === null) ? "(nincs válasz)" : w.item.options[w.a];
+          const div = document.createElement("div");
+          div.style.marginTop = "8px";
+          div.innerHTML = `<div><span class="err">Nem jó</span> – ${w.index+1}. ${w.item.q}</div>
+            <div class="small muted">A te válaszod: <b>${escapeHtml(yourText)}</b></div>
+            <div class="small muted">A helyes: <b>${escapeHtml(correctText)}</b></div>
+            <div class="small muted">Miért: ${escapeHtml(w.item.explain)}</div>`;
+          mcqBlock.appendChild(div);
+        });
+        if (wrongs.length > 7) {
+          mcqBlock.innerHTML += `<div class="muted small" style="margin-top:8px;">További hibák is voltak, de nem listázom mindet.</div>`;
+        }
+      }
+      out.appendChild(mcqBlock);
+
+      const ynBlock = document.createElement("div");
+      ynBlock.className = "q";
+      ynBlock.innerHTML = `<div class="q-title">Igen/Nem – helyes megoldások</div>`;
+      yn.forEach((item, i) => {
+        const ans = payload.answers[item.id];
+        const isYes = ans === "yes";
+        const correct = (isYes === item.correctYes);
+        const line = document.createElement("div");
+        line.style.marginTop = "8px";
+        line.innerHTML = `<div><b>${i+1}.</b> ${item.q}</div>
+          <div class="small">${correct ? `<span class="ok">Jó</span>` : `<span class="err">Nem jó</span>`}
+          – magyarázat: <span class="muted">${escapeHtml(item.why)}</span></div>`;
+        ynBlock.appendChild(line);
+      });
+      out.appendChild(ynBlock);
+
+      return out;
+    }
+
+    /*********************************************************************
+     * 6) FIRESTORE
+     *********************************************************************/
+    function initFirebase() {
+      try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        setText($("status"), "Állapot: Firebase OK.");
+      } catch (e) {
+        console.error(e);
+        setText($("status"), "Állapot: Firebase hiba – valószínűleg hibás a config vagy a betöltés.");
+      }
+    }
+
+    async function saveSubmission(payload) {
+      if (!db) throw new Error("Nincs Firestore kapcsolat (db=null).");
+      const docData = {
+        studentName: student.name,
+        createdAt: serverTimestamp(),
+        createdAtClient: safeNowISO(),
+        score: student.score,
+        maxScore: student.maxScore,
+        answers: payload.answers,
+        justifications: payload.justifications,
+        version: "forras_56_v1"
+      };
+      const ref = await addDoc(collection(db, COLLECTION), docData);
+      return ref.id;
+    }
+
+    /*********************************************************************
+     * 7) TEACHER VIEW
+     *********************************************************************/
+    async function loadSubmissions() {
+      if (!db) throw new Error("Nincs Firestore kapcsolat.");
+      const qy = query(collection(db, COLLECTION), orderBy("createdAtClient", "desc"), limit(200));
+      const snap = await getDocs(qy);
+      const rows = [];
+      snap.forEach(d => rows.push({ id: d.id, ...d.data() }));
+      return rows;
+    }
+
+    function formatTime(row) {
+      const s = row.createdAtClient || "";
+      return s ? s.replace("T"," ").replace("Z","") : "";
+    }
+
+    function summarizeMCQ(row) {
+      let correct = 0;
+      for (const item of mcq) {
+        if (row.answers && row.answers[item.id] === item.correctIndex) correct++;
+      }
+      return `${correct}/${mcq.length}`;
+    }
+
+    function summarizeYN(row) {
+      let correct = 0;
+      const lines = [];
+      yn.forEach((item, i) => {
+        const a = row.answers ? row.answers[item.id] : null;
+        const isYes = a === "yes";
+        const ok = (isYes === item.correctYes);
+        if (ok) correct++;
+        const why = (row.justifications && row.justifications[item.id]) ? row.justifications[item.id] : "";
+        lines.push(`${i+1}) ${ok ? "✓" : "✗"} – ${why}`);
+      });
+      return { correct, text: lines.join("\n") };
+    }
+
+    function renderTeacherTable(rows) {
+      const body = $("submissionsBody");
+      body.innerHTML = "";
+      setText($("countBadge"), String(rows.length));
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        const ynSum = summarizeYN(row);
+
+        const tdTime = document.createElement("td");
+        tdTime.textContent = formatTime(row);
+
+        const tdName = document.createElement("td");
+        tdName.textContent = row.studentName || "";
+
+        const tdScore = document.createElement("td");
+        tdScore.innerHTML = `<b>${row.score ?? "?"}</b> / ${row.maxScore ?? totalAutoPoints}
+          <div class="small muted">YN: ${ynSum.correct}/${yn.length}</div>`;
+
+        const tdMCQ = document.createElement("td");
+        tdMCQ.textContent = summarizeMCQ(row);
+
+        const tdYN = document.createElement("td");
+        tdYN.innerHTML = `<pre style="white-space:pre-wrap; margin:0; font-family: inherit; font-size:12px;">${escapeHtml(ynSum.text)}</pre>`;
+
+        const tdAct = document.createElement("td");
+        const btnDel = document.createElement("button");
+        btnDel.className = "danger";
+        btnDel.textContent = "Törlés";
+        btnDel.onclick = async () => {
+          if (!confirm(`Törlöd ezt a beküldést? (${row.studentName || "név nélkül"})`)) return;
+          await deleteDoc(doc(db, COLLECTION, row.id));
+          await refreshTeacher();
+        };
+        tdAct.appendChild(btnDel);
+
+        tr.appendChild(tdTime);
+        tr.appendChild(tdName);
+        tr.appendChild(tdScore);
+        tr.appendChild(tdMCQ);
+        tr.appendChild(tdYN);
+        tr.appendChild(tdAct);
+
+        body.appendChild(tr);
+      });
+    }
+
+    async function refreshTeacher() {
+      try {
+        const rows = await loadSubmissions();
+        renderTeacherTable(rows);
+      } catch (e) {
+        alert("Hiba a betöltésnél: " + (e?.message || String(e)));
+      }
+    }
+
+    function csvCell(v) {
+      const s = String(v ?? "");
+      const needs = /[",\n]/.test(s);
+      const esc = s.replaceAll('"','""');
+      return needs ? `"${esc}"` : esc;
+    }
+
+    function exportCSVFromTable() {
+      const rows = [];
+      const header = ["Idő","Név","Pont","MaxPont","MCQ_összegzés","YN_indoklások"];
+      rows.push(header);
+
+      const trs = Array.from($("submissionsBody").querySelectorAll("tr"));
+      trs.forEach(tr => {
+        const tds = Array.from(tr.querySelectorAll("td"));
+        const time = tds[0]?.innerText?.trim() ?? "";
+        const name = tds[1]?.innerText?.trim() ?? "";
+        const scoreLine = tds[2]?.innerText?.trim() ?? "";
+        const firstLine = scoreLine.split("\n")[0] || "";
+        const m = firstLine.match(/(\d+)\s*\/\s*(\d+)/);
+        const score = m ? m[1] : "";
+        const max = m ? m[2] : "";
+        const mcqSum = tds[3]?.innerText?.trim() ?? "";
+        const ynText = tds[4]?.innerText?.trim() ?? "";
+        rows.push([time,name,score,max,mcqSum,ynText].map(csvCell));
+      });
+
+      const csv = rows.map(r => r.join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "forras_56_eredmenyek.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    /*********************************************************************
+     * 8) UI WIRING
+     *********************************************************************/
+    function resetLocal() {
+      localStorage.removeItem("forras56_name");
+      localStorage.removeItem("forras56_submitted");
+      location.reload();
+    }
+    function loadNameIfAny() {
+      const n = localStorage.getItem("forras56_name");
+      if (n) $("studentName").value = n;
+    }
+    function markSubmitted() { localStorage.setItem("forras56_submitted", "1"); }
+    function alreadySubmitted() { return localStorage.getItem("forras56_submitted") === "1"; }
+
+    function startQuiz() {
+      const name = ($("studentName").value || "").trim();
+      if (name.length < 2) { show($("nameError")); return; }
+      hide($("nameError"));
+      student.name = name;
+      localStorage.setItem("forras56_name", name);
+
+      hide($("studentStart"));
+      show($("quiz"));
+      renderQuestions();
+
+      if (alreadySubmitted()) {
+        $("submitInfo").textContent = "Megjegyzés: ezen a gépen már volt beküldés. Ha újra kell kezdeni, kattints a „Helyi újrakezdés”-re.";
+      }
+    }
+
+    async function submitQuiz() {
+      hide($("submitError"));
+      const payload = collectAnswers();
+      const err = validateBeforeSubmit(payload);
+      if (err) { $("submitError").textContent = err; show($("submitError")); return; }
+
+      student.answers = payload.answers;
+      student.justifications = payload.justifications;
+      student.score = computeScore(payload.answers);
+
+      $("btnSubmit").disabled = true;
+      $("btnSubmit").textContent = "Mentés folyamatban…";
+
+      try {
+        const id = await saveSubmission(payload);
+        markSubmitted();
+        hide($("quiz"));
+        show($("result"));
+
+        $("resultSummary").innerHTML = `Név: <b>${escapeHtml(student.name)}</b><br>
+          Automatikus pontszám: <b>${student.score}</b> / ${student.maxScore}<br>
+          Mentés azonosító: <span class="badge">${escapeHtml(id)}</span>`;
+
+        const fb = buildFeedback(payload);
+        $("resultFeedback").innerHTML = "";
+        $("resultFeedback").appendChild(fb);
+
+      } catch (e) {
+        console.error(e);
+        $("submitError").textContent = "Mentési hiba. Ellenőrizd a Firestore Rules-t és a firebaseConfig-ot.";
+        show($("submitError"));
+      } finally {
+        $("btnSubmit").disabled = false;
+        $("btnSubmit").textContent = "Beküldés és eredmény";
+      }
+    }
+
+    function openTeacher() {
+      show($("teacher"));
+      $("teacherPass").value = "";
+      hide($("teacherAuthError"));
+      hide($("teacherPanel"));
+    }
+    function closeTeacher() { hide($("teacher")); }
+
+    function teacherLogin() {
+      const pw = $("teacherPass").value || "";
+      if (pw !== TEACHER_PASSWORD) { show($("teacherAuthError")); return; }
+      hide($("teacherAuthError"));
+      show($("teacherPanel"));
+      refreshTeacher();
+    }
+
+    async function deleteAllSubmissions() {
+      if (!confirm("Biztosan törlöd AZ ÖSSZES beküldést? Ez nem visszavonható.")) return;
+      if (!confirm("Második megerősítés: tényleg minden beküldést törlünk?")) return;
+
+      try {
+        const rows = await loadSubmissions();
+        for (const r of rows) await deleteDoc(doc(db, COLLECTION, r.id));
+        await refreshTeacher();
+        alert("Kész: törölve.");
+      } catch (e) {
+        alert("Hiba törléskor: " + (e?.message || String(e)));
+      }
+    }
+
+    // init
+    initFirebase();
+    loadNameIfAny();
+
+    $("btnStart").addEventListener("click", startQuiz);
+    $("btnSubmit").addEventListener("click", submitQuiz);
+    $("btnTeacher").addEventListener("click", openTeacher);
+    $("btnTeacherClose").addEventListener("click", closeTeacher);
+    $("btnTeacherLogin").addEventListener("click", teacherLogin);
+    $("btnRefresh").addEventListener("click", refreshTeacher);
+    $("btnExport").addEventListener("click", exportCSVFromTable);
+    $("btnDeleteAll").addEventListener("click", deleteAllSubmissions);
+    $("btnResetLocal").addEventListener("click", resetLocal);
+
+    $("studentName").addEventListener("keydown", (e) => { if (e.key === "Enter") startQuiz(); });
+    $("teacherPass").addEventListener("keydown", (e) => { if (e.key === "Enter") teacherLogin(); });
+  </script>
 </body>
 </html>
